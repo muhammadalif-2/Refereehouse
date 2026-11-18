@@ -1,0 +1,8 @@
+project_id = "referee-house"
+
+[db.seed]
+enabled = false
+
+[auth]
+site_url = "http://localhost:3000"
+enable_signup = false
