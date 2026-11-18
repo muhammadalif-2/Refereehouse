@@ -2,7 +2,20 @@
 
 Every Match. Every Assignment. Every Achievement.
 
-Referee House adalah ruang kerja berbahasa Indonesia untuk operasional wasit. Fase 1 menyediakan dasbor dengan zona waktu Asia/Jakarta dan mata uang IDR, identitas pengguna, serta pemisahan organisasi di PostgreSQL.
+Referee House adalah ruang kerja berbahasa Indonesia untuk operasional wasit bola basket. Zona waktu jadwal adalah Asia/Jakarta (WIB) dan mata uang honor adalah IDR.
+
+## Alur operasional basket
+
+- **Komisi wasit** memakai peran `organization_admin`. Komisi dapat membuat event, mengatur roster, menetapkan atau melepas coach untuk event atau laga, serta membuat dan mencabut undangan.
+- **Koordinator** membuat laga, mengubah jadwal, menugaskan Crew Chief dan dua Umpire, menyelesaikan laga, serta mencatat honor. **Referee Coach** memiliki kemampuan pengelolaan dalam cakupan event atau laga yang diberikan komisi. Peran coach bersifat kontekstual sehingga satu akun tetap dapat bertugas sebagai wasit di laga lainnya. Penugasan yang bertabrakan ditolak.
+- **Wasit** melihat event yang diikuti, menerima atau menolak penugasan sendiri, dan meninjau honor. **Keuangan** mencatat pembayaran parsial atau penuh pada honor laga yang telah selesai. Aplikasi mencatat referensi pembayaran dengan jejak audit. Transfer atau pembayaran aktual dilakukan di luar aplikasi.
+- Undangan **pengcab** membuat keanggotaan, sedangkan undangan **event** hanya menambahkan wasit ke roster event tersebut. Tautan terikat alamat email yang terverifikasi, berlaku tujuh hari, dan dapat dicabut oleh komisi. Bagikan tautan secara langsung kepada alamat yang diundang.
+
+### Coba demo interaktif
+
+Buka beranda dan pilih **Coba demo interaktif**. Buat event dan laga di **Event & Jadwal**, tambah wasit ke roster dan buat penugasan dari **Wasit & Penugasan**, lalu gunakan pemilih **Simulasi peran** untuk menguji penerimaan tugas sebagai wasit. Kembali sebagai koordinator, buka **Kelola laga** untuk menyelesaikan laga, lalu catat honor dari halaman **Pembayaran**.
+
+Untuk menguji undangan lintas daerah, masuk sebagai komisi, buat tautan untuk satu event dari menu **Undangan**, dan buka tautannya di browser yang sama. Demo menyimpan data di penyimpanan lokal browser. Pendaftaran, akses lintas perangkat, dan email verifikasi memakai Supabase pada deployment operasional.
 
 ## Pratinjau lokal
 
@@ -13,7 +26,7 @@ npm ci
 npm run dev
 ```
 
-Buka **http://localhost:3000**. Tanpa konfigurasi Supabase, server pengembangan menampilkan data fiktif dengan label **Data Demo**. Data demo berasal dari fixture TypeScript di `lib/demo.ts`. Agar lokal tanpa kredensial juga menampilkan halaman konfigurasi, salin `.env.example` ke `.env.local` dengan pengaturan demo bernilai `false`.
+Buka **http://localhost:3000**. Tanpa konfigurasi Supabase, server pengembangan menyediakan ruang kerja **Demo Interaktif**. Data demo berasal dari fixture TypeScript di `lib/operations/demo.ts`. Agar lokal tanpa kredensial juga menampilkan halaman konfigurasi, salin `.env.example` ke `.env.local` dengan pengaturan demo bernilai `false`.
 
 ## Arsitektur
 
@@ -25,8 +38,8 @@ Buka **http://localhost:3000**. Tanpa konfigurasi Supabase, server pengembangan 
 
 ## Menghubungkan Supabase
 
-1. Siapkan proyek Supabase. Aktifkan penyedia Email dan nonaktifkan **Allow new users to sign up** bila akun hanya boleh dibuat oleh operator. Di **Authentication → URL Configuration**, tetapkan Site URL ke asal aplikasi Anda.
-2. Jalankan `supabase/migrations/202611180001_foundation.sql` sekali melalui SQL Editor Supabase atau melalui CLI. Untuk CLI, gunakan `npx supabase login`, `npx supabase link --project-ref <project-ref>`, dan `npx supabase db push` dari akar proyek. Pertahankan `referee_private` di luar daftar skema yang diekspos Data API.
+1. Siapkan proyek Supabase. Aktifkan penyedia Email, **Allow new users to sign up**, dan **Confirm email**. Akun baru memerlukan undangan sebelum memiliki akses. Di **Authentication → URL Configuration**, tetapkan Site URL ke asal aplikasi Anda dan tambahkan callback `/auth/konfirmasi` untuk origin tersebut. Tautan konfirmasi pada pendaftaran melalui undangan juga membawa parameter `undangan`. Gunakan aturan allowlist khusus host dan jalur callback dengan pencocokan query jika diperlukan. Gunakan templat email konfirmasi Supabase yang memakai `{{ .ConfirmationURL }}` dan konfigurasikan SMTP untuk penerima eksternal.
+2. Jalankan kedua migrasi SQL dalam `supabase/migrations/` secara berurutan melalui SQL Editor Supabase atau melalui CLI. Untuk CLI, gunakan `npx supabase login`, `npx supabase link --project-ref <project-ref>`, dan `npx supabase db push` dari akar proyek. Pertahankan `referee_private` di luar daftar skema yang diekspos Data API.
 3. Buat akun admin yang telah dikonfirmasi melalui **Authentication → Users** atau proses undangan yang Anda kelola. Pastikan akun dapat masuk dengan kata sandi. Salin UUID akun yang benar.
 4. Jalankan SQL berikut di SQL Editor sebagai pemilik proyek. Ganti nilai contoh. Foreign key memastikan UUID pengguna sudah terdaftar di Auth.
 
@@ -49,7 +62,7 @@ from organization;
 commit;
 ```
 
-5. Salin `.env.example` menjadi `.env.local`, isikan URL proyek dan **publishable key** Supabase, lalu mulai ulang server. Masuk melalui `/masuk`. Dasbor akan kosong sampai catatan operasional ditambahkan. Untuk mengaitkan akun wasit, buat keanggotaan berperan `referee` dan isi `referees.user_id` dengan UUID akun yang sama.
+5. Salin `.env.example` menjadi `.env.local`, isikan URL proyek, **publishable key** Supabase, dan `REFEREE_HOUSE_APP_URL`, lalu mulai ulang server. Masuk melalui `/masuk`. Dasbor akan kosong sampai catatan operasional ditambahkan. Untuk mengaitkan akun wasit, buat keanggotaan berperan `referee` dan isi `referees.user_id` dengan UUID akun yang sama.
 6. Simpan kunci service role dan kata sandi database di pengelola rahasia Anda. Aplikasi hanya membutuhkan URL dan publishable key, bersama sesi pengguna.
 
 ## Verifikasi
@@ -67,15 +80,13 @@ Tes memakai PostgreSQL tersemat melalui PGlite dengan stub `auth.uid()`, serta d
 
 1. Impor direktori proyek ini ke repositori GitHub Anda. Berkas yang dikecualikan mencakup `.env.local`, `node_modules`, dan `.next`.
 2. Terapkan migrasi ke lingkungan Supabase tujuan. Gunakan proyek Supabase terpisah untuk Preview bila Preview memerlukan akses data.
-3. Hubungkan repositori ke Vercel, pilih preset **Next.js**, gunakan Node.js 24.x, dan setel `NEXT_PUBLIC_SUPABASE_URL` serta `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` untuk lingkungan yang sesuai.
+3. Hubungkan repositori ke Vercel, pilih preset **Next.js**, gunakan Node.js 24.x, dan setel `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, dan `REFEREE_HOUSE_APP_URL` untuk lingkungan yang sesuai. Hapus `REFEREE_HOUSE_DEMO` dari lingkungan operasional.
 4. Deploy. Tetapkan Site URL Supabase ke domain Vercel tujuan. Verifikasi bahwa pengunjung diarahkan ke halaman masuk, akun tanpa keanggotaan ditolak, dan akun admin dapat membuka dasbor organisasinya.
 
 ### Deployment demo di Vercel
 
-Untuk meninjau dashboard Fase 1 tanpa database, gunakan proyek Vercel khusus demo yang mengimpor repositori GitHub yang sama. Pilih preset **Next.js**, set Node.js ke 24.x, dan tambahkan `REFEREE_HOUSE_DEMO=true`. Biarkan kedua variabel Supabase kosong. Setelah deploy, halaman utama menampilkan **Data Demo**. Dengan salah satu variabel Supabase terisi, mode demo dinonaktifkan agar konfigurasi yang belum lengkap dapat terdeteksi.
+Untuk meninjau dashboard Fase 1 tanpa database, gunakan proyek Vercel khusus demo yang mengimpor repositori GitHub yang sama. Pilih preset **Next.js**, set Node.js ke 24.x, dan tambahkan `REFEREE_HOUSE_DEMO=true`. Biarkan kedua variabel Supabase kosong. Setelah deploy, beranda menampilkan tombol **Coba demo interaktif**. Dengan salah satu variabel Supabase terisi, mode demo dinonaktifkan agar konfigurasi yang belum lengkap dapat terdeteksi.
 
-## Status fase
+## Cakupan rilis basket
 
-- **Fase 1 tersedia:** fondasi autentikasi, peran, skema dan RLS, pemilih organisasi, dasbor, filter periode, grafik, daftar hingga 30 penugasan mendatang, ringkasan hingga 12 event aktif, dan ringkasan keuangan baca-saja. Panel notifikasi merangkum penugasan yang menunggu konfirmasi.
-- **Fase 2 berikutnya:** direktori, pengelolaan event dan pertandingan, alur penugasan dan konfirmasi, ketersediaan, pencegahan benturan, dan kalender. Tambahkan operasi tulis dengan otorisasi dan audit di setiap transisi yang relevan.
-- **Fase 3–6:** mesin tarif, simulator, persetujuan dengan riwayat tarif, pencatatan dan alokasi pembayaran transaksional, laporan, notifikasi persisten, pencarian lintas modul, dan validasi produksi lanjutan. Skema keuangan awal menyediakan model baca, dengan mutasi keuangan disiapkan untuk migrasi berikutnya.
+Rilis ini mencakup pengelolaan event, laga, roster, penugasan, coach, undangan, dan pencatatan honor. Hak akses yang sama diuji di PostgreSQL tersemat. Sebelum menggunakan akun asli, lakukan uji pendaftaran, konfirmasi email, penerimaan undangan lintas pengcab, dan pembayaran tercatat pada proyek Supabase yang sudah terhubung.

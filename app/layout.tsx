@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import "@fontsource-variable/inter";
 import "./globals.css";
+import "./basketball.css";
 
 export const metadata: Metadata = {
   title: "Referee House",

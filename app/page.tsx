@@ -1,124 +1,115 @@
-import { redirect } from "next/navigation";
-import { DashboardShell } from "@/components/dashboard-shell";
+import Link from "next/link";
+import {
+  ArrowRight,
+  CalendarDays,
+  CircleDollarSign,
+  ClipboardList,
+  Link2,
+  ShieldCheck,
+  Trophy,
+  UsersRound,
+} from "lucide-react";
 import { Brand } from "@/components/brand";
-import { dashboardSchema } from "@/lib/dashboard";
-import { demoDashboard } from "@/lib/demo";
-import { dateRange, todayInJakarta } from "@/lib/dates";
-import { roles, type Role, type Membership } from "@/lib/access";
-import { isDemo, supabaseConfig } from "@/lib/supabase/config";
-import { getSupabase } from "@/lib/supabase/server";
-import { signOut } from "./actions";
+import { isDemo } from "@/lib/supabase/config";
 
-type Params = Record<string, string | string[] | undefined>;
+const roles = [
+  {
+    title: "Komisi Wasit",
+    icon: ShieldCheck,
+    text: "Tetapkan coach, kelola roster pengcab, dan buat undangan khusus event.",
+  },
+  {
+    title: "Koordinator & Referee Coach",
+    icon: ClipboardList,
+    text: "Susun jadwal, isi posisi kru, selesaikan laga, dan catat honor sesuai cakupan tugas.",
+  },
+  {
+    title: "Wasit",
+    icon: UsersRound,
+    text: "Terima tugas, cek jadwal, dan lihat pembayaran dari pengcab atau event tamu.",
+  },
+];
 
-function State({ title, message }: { title: string; message: string }) {
+export default function Home() {
+  const demo = isDemo();
   return (
-    <main className="auth-page">
-      <section className="auth-card">
-        <Brand />
-        <h1>{title}</h1>
-        <p>{message}</p>
-        <form action={signOut}>
-          <button className="primary">Keluar</button>
-        </form>
-      </section>
-    </main>
-  );
-}
-
-export default async function DashboardPage({
-  searchParams,
-}: {
-  searchParams: Promise<Params>;
-}) {
-  const params = await searchParams;
-  const today = todayInJakarta();
-  const range = dateRange(params, today);
-  if (isDemo()) {
-    const membership: Membership = {
-      id: "demo",
-      name: "Federasi Wasit Jakarta",
-      role: "organization_admin",
-    };
-    return (
-      <DashboardShell
-        data={demoDashboard(range, today)}
-        range={range}
-        today={today}
-        organization={membership}
-        memberships={[membership]}
-        viewer={{ name: "Bima Aditya", role: membership.role }}
-        demo
-      />
-    );
-  }
-  if (!supabaseConfig()) redirect("/masuk?status=setup");
-  const supabase = await getSupabase();
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) redirect("/masuk");
-
-  const [organizations, profile] = await Promise.all([
-    supabase.rpc("my_organizations"),
-    supabase
-      .from("profiles")
-      .select("full_name")
-      .eq("id", auth.user.id)
-      .maybeSingle(),
-  ]);
-  if (organizations.error || profile.error)
-    return (
-      <State
-        title="Ruang kerja tidak tersedia"
-        message="Coba masuk kembali atau hubungi administrator."
-      />
-    );
-  const memberships =
-    (organizations.data as { id: string; name: string; role: Role }[] | null) ??
-    [];
-  const organization =
-    memberships.find((item) => item.id === params.org) ?? memberships[0];
-  if (!organization)
-    return (
-      <State
-        title="Keanggotaan belum tersedia"
-        message="Hubungi administrator untuk mendapatkan akses ke organisasi Anda."
-      />
-    );
-  if (!Object.hasOwn(roles, organization.role))
-    return (
-      <State
-        title="Akses tidak tersedia"
-        message="Hubungi administrator organisasi."
-      />
-    );
-
-  const { data, error } = await supabase.rpc("dashboard_summary", {
-    target_org: organization.id,
-    date_from: range.from,
-    date_to: range.to,
-  });
-  const parsed = dashboardSchema.safeParse(data);
-  if (error || !parsed.success)
-    return (
-      <State
-        title="Dasbor belum dapat dimuat"
-        message="Coba masuk kembali atau hubungi administrator."
-      />
-    );
-  return (
-    <DashboardShell
-      data={parsed.data}
-      range={range}
-      today={today}
-      organization={organization}
-      memberships={memberships}
-      viewer={{
-        name:
-          profile.data?.full_name ||
-          auth.user.email?.split("@")[0] ||
-          "Pengguna",
-        role: organization.role,
-      }}
-    />
+    <div className="basket-home">
+      <header className="basket-nav">
+        <div className="basket-inner">
+          <Link href="/" aria-label="Referee House beranda">
+            <Brand />
+          </Link>
+          <nav aria-label="Navigasi utama">
+            <a href="#peran">Peran</a>
+            <Link href="/masuk">Masuk</Link>
+            <Link className="basket-nav-cta" href="/daftar">
+              Daftar <ArrowRight size={15} />
+            </Link>
+          </nav>
+        </div>
+      </header>
+      <main>
+        <section className="basket-hero">
+          <div className="basket-inner">
+            <div className="basket-hero-copy">
+              <p className="basket-tag">
+                <Trophy size={15} /> OPERASIONAL WASIT BASKET
+              </p>
+              <h1>Kelola wasit untuk setiap pertandingan.</h1>
+              <p>
+                Susun jadwal, bentuk kru pertandingan, dan catat honor untuk
+                event pengcab maupun lintas daerah.
+              </p>
+              <div className="basket-hero-actions">
+                <Link className="basket-cta" href="/ruang-kerja">
+                  {demo ? "Coba demo interaktif" : "Buka ruang kerja"}{" "}
+                  <ArrowRight size={18} />
+                </Link>
+                <a href="#peran">Lihat alur peran</a>
+              </div>
+            </div>
+          </div>
+        </section>
+        <div className="basket-inner basket-proof" aria-label="Fitur aplikasi">
+          <div>
+            <CalendarDays size={20} /> Jadwal & cek bentrok
+          </div>
+          <div>
+            <Link2 size={20} /> Undangan lintas daerah
+          </div>
+          <div>
+            <CircleDollarSign size={20} /> Pencatatan honor
+          </div>
+        </div>
+        <section id="peran" className="basket-inner basket-roles">
+          <div className="basket-roles-title">
+            <h2>Satu ruang kerja, akses sesuai peran.</h2>
+            <p>
+              Komisi menetapkan Referee Coach untuk seluruh event atau satu
+              laga. Wasit yang sama tetap bisa bertugas di laga lain.
+            </p>
+          </div>
+          <div className="basket-role-grid">
+            {roles.map(({ title, icon: Icon, text }) => (
+              <article key={title}>
+                <span className="tile blue">
+                  <Icon size={21} />
+                </span>
+                <h3>{title}</h3>
+                <p>{text}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+      </main>
+      <footer className="basket-inner basket-footer">
+        <Link href="/" aria-label="Referee House beranda">
+          <Brand />
+        </Link>
+        <Link href="/ruang-kerja">
+          {demo ? "Buka demo" : "Buka ruang kerja"} <ArrowRight size={14} />
+        </Link>
+      </footer>
+    </div>
   );
 }

@@ -4,9 +4,9 @@ import { dateRange, dateShift, todayInJakarta } from "./dates";
 const fixtures = [
   [
     "Rizky Pratama",
-    "Liga Nusantara 2026",
-    "Garuda FC vs. Rajawali FC",
-    "Stadion Patriot",
+    "Liga Basket Nusantara",
+    "Garuda vs. Rajawali",
+    "GOR Patriot",
     "14:00",
     "Wasit Utama",
     "accepted",
@@ -22,8 +22,8 @@ const fixtures = [
   ],
   [
     "Dewi Lestari",
-    "Liga Nusantara 2026",
-    "Elang Muda vs. Bintang FC",
+    "Liga Basket Nusantara",
+    "Elang Muda vs. Bintang Basket",
     "GOR Soemantri",
     "16:00",
     "Wasit Utama",
@@ -32,7 +32,7 @@ const fixtures = [
   [
     "Fajar Hidayat",
     "Kejuaraan KU-14",
-    "SSB Merah Putih vs. Tunas FC",
+    "Merah Putih vs. Tunas Muda",
     "Lapangan ABC",
     "09:00",
     "Wasit Keempat",
@@ -112,7 +112,7 @@ export function demoDashboard(
     })),
     upcoming,
     ongoing: [
-      { name: "Liga Nusantara 2026", total: 32, completed: 24, assigned: 18 },
+      { name: "Liga Basket Nusantara", total: 32, completed: 24, assigned: 18 },
       { name: "Piala Pelajar Jakarta", total: 24, completed: 13, assigned: 14 },
       { name: "Kejuaraan KU-14", total: 16, completed: 6, assigned: 10 },
     ].slice(0, scale(3)),
