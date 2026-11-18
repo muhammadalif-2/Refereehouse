@@ -18,6 +18,8 @@ export function demoOps(): Workspace {
   const starts = dateShift(today, 1);
   const eventId = uid(1);
   const game = uid(11);
+  const pastEvent = uid(2);
+  const pastDay = dateShift(today, -5);
   return {
     club: {
       id: uid(40),
@@ -31,6 +33,13 @@ export function demoOps(): Workspace {
         region: "Jakarta",
         starts_on: today,
         ends_on: dateShift(today, 14),
+      },
+      {
+        id: pastEvent,
+        name: "Piala Basket Bandung",
+        region: "Bandung",
+        starts_on: dateShift(today, -7),
+        ends_on: dateShift(today, -3),
       },
     ],
     referees: [
@@ -75,11 +84,35 @@ export function demoOps(): Workspace {
         ends_at: starts + "T17:30:00+07:00",
         status: "scheduled",
       },
+      {
+        id: uid(13),
+        event_id: pastEvent,
+        name: "Merpati vs. Satria",
+        venue: "GOR Bandung",
+        starts_at: pastDay + "T10:00:00+07:00",
+        ends_at: pastDay + "T11:30:00+07:00",
+        status: "completed",
+      },
+      {
+        id: uid(14),
+        event_id: pastEvent,
+        name: "Putra Kota vs. Bimasakti",
+        venue: "GOR Bandung",
+        starts_at: pastDay + "T15:00:00+07:00",
+        ends_at: pastDay + "T16:30:00+07:00",
+        status: "completed",
+      },
     ],
-    roster: [person, uid(22), uid(23)].map((referee_id) => ({
-      event_id: eventId,
-      referee_id,
-    })),
+    roster: [
+      ...[person, uid(22), uid(23)].map((referee_id) => ({
+        event_id: eventId,
+        referee_id,
+      })),
+      ...[person, uid(22)].map((referee_id) => ({
+        event_id: pastEvent,
+        referee_id,
+      })),
+    ],
     coaches: [
       {
         id: uid(30),
@@ -100,9 +133,54 @@ export function demoOps(): Workspace {
         status: "pending",
         mine: false,
       },
+      {
+        id: uid(32),
+        match_id: uid(13),
+        referee_id: person,
+        position: "Crew Chief",
+        fee_idr: 175000,
+        paid: 175000,
+        status: "completed",
+        mine: false,
+      },
+      {
+        id: uid(33),
+        match_id: uid(13),
+        referee_id: uid(22),
+        position: "Umpire 1",
+        fee_idr: 125000,
+        paid: 50000,
+        status: "completed",
+        mine: false,
+      },
+      {
+        id: uid(34),
+        match_id: uid(14),
+        referee_id: uid(22),
+        position: "Crew Chief",
+        fee_idr: 175000,
+        paid: 0,
+        status: "completed",
+        mine: false,
+      },
     ],
     invites: [],
-    ledger: [],
+    ledger: [
+      {
+        id: uid(50),
+        assignment_id: uid(32),
+        reference: "DEMO-BDG-01",
+        amount: 175000,
+        paid_on: dateShift(today, -2),
+      },
+      {
+        id: uid(51),
+        assignment_id: uid(33),
+        reference: "DEMO-BDG-02",
+        amount: 50000,
+        paid_on: dateShift(today, -1),
+      },
+    ],
   };
 }
 

@@ -3,6 +3,13 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { PGlite } from "@electric-sql/pglite";
 import { demoOps, demoView, redeemDemo, runDemo } from "../lib/operations/demo";
+import {
+  eventData,
+  eventStatus,
+  filterEvents,
+  paymentTotals,
+} from "../lib/operations/insights";
+import { todayInJakarta } from "../lib/dates";
 import type { Command, Workspace } from "../lib/operations/model";
 
 const uid = (n: number) =>
@@ -117,7 +124,10 @@ test("demo supports event, roster, invitation, two duties, acceptance and record
     amount: 75000,
     reference: "UJI-001",
   }).state;
-  assert.equal(state.ledger[0].amount, 75000);
+  assert.equal(
+    state.ledger.find((entry) => entry.assignment_id === assignment.id)?.amount,
+    75000,
+  );
   assert.equal(
     state.assignments.find((a) => a.id === assignment.id)?.paid,
     75000,
@@ -343,4 +353,33 @@ test("database enforces event-only guest access, game coach scope and an auditab
     ).rows.length,
     1,
   );
+});
+
+test("insight filters count visible records and exclude unearned honor", () => {
+  const seed = demoOps();
+  const records = eventData(seed);
+  const bandung = filterEvents(records, { region: "Bandung" });
+  assert.equal(bandung.length, 1);
+  assert.equal(bandung[0].completed, 2);
+  assert.equal(bandung[0].referees.length, 2);
+  assert.equal(eventStatus(bandung[0].event, todayInJakarta()), "finished");
+  assert.deepEqual(paymentTotals(seed.assignments), {
+    due: 475000,
+    paid: 225000,
+    remaining: 250000,
+  });
+  assert.deepEqual(
+    filterEvents(records, {
+      from: bandung[0].event.ends_on,
+      to: bandung[0].event.ends_on,
+    }),
+    bandung,
+  );
+  assert.equal(
+    filterEvents(records, { from: todayInJakarta(), region: "Bandung" }).length,
+    0,
+  );
+  const oneReferee = demoView(seed, "referee", true, uid(23));
+  assert.equal(eventData(oneReferee).length, 1);
+  assert.equal(paymentTotals(oneReferee.assignments).paid, 0);
 });

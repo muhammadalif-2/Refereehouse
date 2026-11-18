@@ -13,7 +13,9 @@ Referee House adalah ruang kerja berbahasa Indonesia untuk operasional wasit bol
 
 ### Coba demo interaktif
 
-Buka beranda dan pilih **Coba demo interaktif**. Buat event dan laga di **Event & Jadwal**, tambah wasit ke roster dan buat penugasan dari **Wasit & Penugasan**, lalu gunakan pemilih **Simulasi peran** untuk menguji penerimaan tugas sebagai wasit. Kembali sebagai koordinator, buka **Kelola laga** untuk menyelesaikan laga, lalu catat honor dari halaman **Pembayaran**.
+Buka beranda dan pilih **Coba demo interaktif**. Buka **Event**, pilih **Buat event**, lalu simpan informasi event. Pada detail event, pilih **Tambah pertandingan** untuk menyusun jadwal. Tambahkan wasit ke roster dan buat penugasan dari **Wasit & Penugasan**, lalu gunakan pemilih **Simulasi peran** untuk menguji penerimaan tugas sebagai wasit. Kembali sebagai koordinator, buka detail laga dan pilih **Kelola pertandingan** untuk menyelesaikan laga, lalu catat honor dari halaman **Pembayaran**.
+
+Buka **Data & Analisis** untuk melihat progres dan honor, pilih rentang tanggal atau daerah, lalu klik nama pada tabel untuk melihat detail. Filter tanggal memakai periode event dan mencakup pertandingan yang berada di dalam event terpilih.
 
 Untuk menguji undangan lintas daerah, masuk sebagai komisi, buat tautan untuk satu event dari menu **Undangan**, dan buka tautannya di browser yang sama. Demo menyimpan data di penyimpanan lokal browser. Pendaftaran, akses lintas perangkat, dan email verifikasi memakai Supabase pada deployment operasional.
 
